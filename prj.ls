@@ -13,18 +13,27 @@ req = do
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64)"
   qs: opt
 
+prjs = {}
+[c1,c2] = [0,0]
+
 for k,v of data
   for it in v.items
     if not (link = it.formattedUrl) => continue
-      #console.log link
+    ret = /github.com\/([^\/]+)\/([^\/]+)\/blob\/master\/g0v.json/.exec link
+    if not ret => continue
+    c1++
+for k,v of data
+  for it in v.items
+    if not (link = it.formattedUrl) => continue
     ret = /github.com\/([^\/]+)\/([^\/]+)\/blob\/master\/g0v.json/.exec link
     if not ret => continue
     ((user,name) ->
-      req.url = "https://api.github.com/repos/#{user}/#{name}/stats/commit_activity"
+      req.url = "https://api.github.com/repos/#{user}/#{name}/stats/contributors"
       request req, (e,r,b) ->
         commits = 0
         d = JSON.parse b
-        for contrib in d
-          commits += contrib.total
-        console.log name, commits
+        prjs.{}[user][name] = d
+        c2++
+        console.log c1, c2
+        if c2==c1 => fs.writeFileSync \output.json, JSON.stringify(prjs)
     ) ret.1, ret.2
